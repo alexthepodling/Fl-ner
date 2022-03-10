@@ -10,10 +10,19 @@ public class swichtrigger : MonoBehaviour
     // Whether or not the zone is interactable
     private bool interactable = false;
 
+    // A reference to the player character
+    private GameObject playerChar;
+
+    void Start()
+    {
+        // Find the player char by the tag "player"
+        playerChar = GameObject.FindWithTag("Player");
+    }
+
     // If the player enters the interactable area, then turn on interactable
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "Player")
+        if (other.gameObject == playerChar)
         {
             interactable = true;
         }
@@ -22,7 +31,7 @@ public class swichtrigger : MonoBehaviour
     // If the player leaves the interactable area, then turn off interactable
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.tag == "Player")
+        if (other.gameObject == playerChar)
         {
             interactable = false;
         }
@@ -34,6 +43,7 @@ public class swichtrigger : MonoBehaviour
         if (interactable && Input.GetButtonDown("Interact"))
         {
             bakingController.isBaking = !bakingController.isBaking;
+            playerChar.GetComponent<PlayerMovement>().canMove = !playerChar.GetComponent<PlayerMovement>().canMove;
         }
     }
 }

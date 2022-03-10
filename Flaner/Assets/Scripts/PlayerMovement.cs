@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -15,6 +16,12 @@ public class PlayerMovement : MonoBehaviour
 
     public float turnSmoothTime = 0.1f;
     float turnSmoothVelocity;
+
+    // The camera that is used in regular play
+    [SerializeField] private CinemachineFreeLook playerCam;
+
+    // Whether or not the player can move
+    public bool canMove = true;
 
     private void Start()
     {
@@ -36,14 +43,25 @@ public class PlayerMovement : MonoBehaviour
 
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
 
-            controller.Move(moveDir.normalized * speed * Time.deltaTime);
-        }
+            if (canMove)
+            {
+                controller.Move(moveDir.normalized * speed * Time.deltaTime);
 
+            }
+        }
         else
         {
             V3_move_direction.y -= fl_Gravity * Time.deltaTime;
         }
 
-        controller.Move(V3_move_direction);
+        if (canMove)
+        {
+            controller.Move(V3_move_direction);
+            playerCam.enabled = true;
+        }
+        else
+        {
+            playerCam.enabled = false;
+        }
     }
 }

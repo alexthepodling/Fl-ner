@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
+using TMPro;
 
 class Ingredient
 {
@@ -30,6 +32,9 @@ public class BakingController : MonoBehaviour
     // An integer which tells us what stage of the baking the player is in
     private int bakingState = 0;
 
+    // An array of cameras for the baking process
+    [SerializeField] private CinemachineVirtualCamera[] bakingCameras;
+
     // A list of all the ingredients in the cupboard
     private List<Ingredient> cupboardIngredients = new List<Ingredient>() {
         new Ingredient(0, "Self-raising flour", 1000),
@@ -37,11 +42,20 @@ public class BakingController : MonoBehaviour
         new Ingredient(2, "Olive oil", 1000)
     };
 
+    // A reference to the prefab for shelf ingredients
+    [SerializeField] private GameObject ingredientObj;
+
+    // A reference to the shelf in the scene
+    [SerializeField] private Transform shelf;
+
     // A list of the ingredients that the player has taken out of the cupboard
     private List<Ingredient> counterIngredients;
 
     // A list of all the ingredients used by the player in the current bake
     private List<Ingredient> usedIngredients;
+
+    // A list of all the gameobjects on the shelf at the moment
+    private List<GameObject> shelfObjects = new List<GameObject>();
 
     // An integer that tracks what ingredient we are looking at right now
     private int currentIngredient;
@@ -54,6 +68,13 @@ public class BakingController : MonoBehaviour
 
     // A float of how much we have weighed
     private float weighedAmount = 0f;
+    
+    // Start-up of the program
+    void Start()
+    {
+        // Initialize the shelf for the first time
+        InitShelf();
+    }
 
     // Update is called once per frame
     void Update()
@@ -68,8 +89,21 @@ public class BakingController : MonoBehaviour
                 bakingState = Mathf.Clamp(bakingState, 0, 4);
             }
 
+            // Turn on/off baking cameras according to the baking state
+            for (int i = 0; i < bakingCameras.Length; i++)
+            {
+                if (i != bakingState)
+                {
+                    bakingCameras[i].enabled = false;
+                }
+                else
+                {
+                    bakingCameras[i].enabled = true;
+                }
+            }
+
             // Switch the baking state
-            switch(bakingState)
+            switch (bakingState)
             {
                 // Ingredients
                 case 0:
@@ -133,6 +167,41 @@ public class BakingController : MonoBehaviour
                     break;
 
             }
+        }
+
+        UpdateShelf();
+    }
+
+    // Init shelf - call to initialize or reinitialize the shelf
+    private void InitShelf()
+    {
+        // Get rid of any existing shelfobjects
+        if (shelfObjects.Count > 0)
+        {
+            foreach (GameObject shelfObject in shelfObjects)
+            {
+                Destroy(shelfObject);
+            }
+        }
+
+        // Clear the shelfobjects list
+        shelfObjects.Clear();
+
+        // Add a new shelfObj for each ingredient in the cupboard
+        for (int i = 0; i < cupboardIngredients.Count; i++)
+        {
+            shelfObjects.Add(Instantiate(ingredientObj, shelf.position + new Vector3(0f, 0.5f, i * 0.6f - 2f), Quaternion.identity));
+        }
+    }
+
+    // Update shelf - call to update the items on the shelf
+    private void UpdateShelf()
+    {
+        // Loop through all the shelf objs and change their quantity to match the corresponding cupboard item
+        for (int i = 0; i < cupboardIngredients.Count; i++)
+        {
+            shelfObjects[i].transform.Find("ItemName").gameObject.GetComponent<TMP_Text>().text = cupboardIngredients[i].name;
+            shelfObjects[i].transform.Find("ItemQuantity").gameObject.GetComponent<TMP_Text>().text = cupboardIngredients[i].quantity.ToString();
         }
     }
 
