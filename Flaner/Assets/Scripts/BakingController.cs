@@ -35,6 +35,9 @@ public class BakingController : MonoBehaviour
     // An array of cameras for the baking process
     [SerializeField] private CinemachineVirtualCamera[] bakingCameras;
 
+    // The camera used for weighing
+    [SerializeField] private CinemachineVirtualCamera weighingCamera;
+
     // A list of all the ingredients in the cupboard
     private List<Ingredient> cupboardIngredients = new List<Ingredient>() {
         new Ingredient(0, "Self-raising flour", 1000),
@@ -111,6 +114,8 @@ public class BakingController : MonoBehaviour
                     {
                         CycleIngredients(cupboardIngredients);
 
+                        bakingCameras[0].GetCinemachineComponent<CinemachineTrackedDolly>().m_PathPosition = currentIngredient;
+
                         // Select ingredient to weigh
                         if (Input.GetButtonDown("Jump"))
                         {
@@ -120,6 +125,9 @@ public class BakingController : MonoBehaviour
                     }
                     else
                     {
+                        bakingCameras[0].enabled = false;
+                        weighingCamera.enabled = true;
+
                         // The player's input affects the amoung weighed out
                         weighedAmount += Input.GetAxisRaw("Vertical");
 
@@ -210,17 +218,9 @@ public class BakingController : MonoBehaviour
     {
         if (Input.GetButtonDown("Vertical"))
         {
-            currentIngredient += Mathf.RoundToInt(Input.GetAxis("Vertical"));
+            currentIngredient += Mathf.RoundToInt(Input.GetAxisRaw("Vertical"));
 
-            // Loop back around to start / end of array if exceeded
-            if (currentIngredient < 0)
-            {
-                currentIngredient = ingredientsList.Count - 1;
-            }
-            else if (currentIngredient >= ingredientsList.Count)
-            {
-                currentIngredient = 0;
-            }
+            currentIngredient = Mathf.Clamp(currentIngredient, 0, ingredientsList.Count - 1);
         }
     }
 }
